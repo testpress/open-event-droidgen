@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>Apk Generator - Open Event</title>
+    <title>APK Generator - Testpress</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,7 +20,7 @@
 
 <div class="custom-navbar">
     <a href='/' class="custom-navtitle">
-       Open Event Apk Generator
+       Testpress Android App APK Generator
      </a>
     <div class="custom-menubutton">
         <i class="glyphicon glyphicon-th"></i>
@@ -32,33 +32,16 @@
       <div class="hide-arrow"></div>
       <div class="custom-menu-cont">
         <div class="custom-menu-item">
-          <a class="custom-icon" href="http://github.com/fossasia/open-event-android" target="_blank"><img src="static/icons/code.png">
+          <a class="custom-icon" href="https://github.com/testpress/android" target="_blank"><img src="static/icons/code.png">
           <p class="custom-title">Code</p></a>
         </div>
         <div class="custom-menu-item">
-          <a class="custom-icon" href="http://github.com/fossasia/open-event-android/issues" target="_blank"><img src="static/icons/bug.png">
+          <a class="custom-icon" href="https://github.com/testpress/android/issues" target="_blank"><img src="static/icons/bug.png">
           <p class="custom-title">Bug Report</p></a>
         </div>
         <div class="custom-menu-item">
-          <a class="custom-icon" href="http://blog.fossasia.org" target="_blank"><img src="static/icons/blog.png">
+          <a class="custom-icon" href="https://blog.testpress.in/" target="_blank"><img src="static/icons/blog.png">
           <p class="custom-title">Blogs</p></a>
-        </div>
-        <hr style="margin-top: 20px;">
-        <div class="custom-menu-item">
-          <a class="custom-icon" href="http://eventyay.com" target="_blank"><img src="static/icons/eventyay.png">
-          <p class="custom-title">Eventyay</p></a>
-        </div>
-        <div class="custom-menu-item">
-          <a class="custom-icon" href="http://fossasia.org" target="_blank"><img src="static/icons/fossasia.png">
-          <p class="custom-title">FOSSASIA</p></a>
-        </div>
-        <div class="custom-menu-item">
-          <a class="custom-icon" href="http://chat.susi.ai" target="_blank"><img src="static/icons/susi.jpg">
-          <p class="custom-title">Susi</p></a>
-        </div>
-        <div class="custom-menu-item">
-          <a class="custom-icon" href="http://loklak.net" target="_blank"><img src="static/icons/loklak.png">
-          <p class="custom-title">loklak</p></a>
         </div>
       </div>
     </div>
@@ -75,7 +58,7 @@
         <ul style="list-style-type:none">
             <li>
                 <label style="font-weight: 300">
-                    <input type="radio" name="data-source" value="json_upload" required/> Upload your own JSON files
+                    <input type="radio" name="data-source" value="json_upload" required/> Upload your own JSON file
                 </label>
             </li>
             <li>
@@ -91,14 +74,19 @@
         </section>
 
         <section id="json-upload-holder" style="display:none;">
-            <label for="json-upload">Zip file containing resources for the event</label>
-            <input type="file" name="json-upload" id="json-upload" class="form-control" accept="application/zip"/>
+            <label for="json-upload">Configuration json file  </label>
+            <input type="file" name="json-upload" id="json-upload" class="form-control" accept=".json"/>
             <div class="progress" id="file-progress" style="display: none; margin-top: 5px;">
                 <div class="progress-bar" role="progressbar" id="file-progress-bar"
                      style="width:0; height: 20px;">
                     <span id="file-progress-val">0%</span>
                 </div>
             </div>
+        </section>
+
+         <section id="google-json-upload-holder">
+            <label for="google-services-json">google-services.json file</label>
+            <input type="file" name="google-services-json" id="google-services-json" class="form-control" accept=".json"/>
         </section>
 
         <section id="build-type-holder">

@@ -10,9 +10,10 @@ import requests
 import validators
 from celery.utils.log import get_task_logger
 from flask import current_app
+from git import Repo
 
-from app.utils import replace, clear_dir, unzip, get_build_tools_version, change_theme
-from app.utils.assets import resize_launcher_icon, resize_background_image, save_logo
+from app.utils import clear_dir, get_build_tools_version
+from app.utils.assets import create_various_density_images
 from app.utils.libs.asset_resizer import DENSITY_TYPES
 from app.utils.notification import Notification
 
@@ -30,6 +31,7 @@ class Generator:
     """
 
     def __init__(self, config, via_api=False, identifier=None, task_handle=None, build_type=None, theme_colors=None):
+        print "generator init0"
         if not identifier:
             self.identifier = str(uuid.uuid4())
         else:
@@ -44,15 +46,21 @@ class Generator:
         self.event_name = ''
         self.app_name = ''
         self.app_working_dir = os.path.abspath(self.working_dir + '/' + self.identifier + '/android-src/')
-        self.app_background_image = os.path.abspath(config['BASE_DIR'] + '/app/static/assets/background.jpg')
-        self.app_launcher_icon = os.path.abspath(config['BASE_DIR'] + '/app/static/assets/ic_launcher.png')
-        self.app_package_name = 'org.fossasia.openevent.' + self.app_name.replace(" ", "")
         self.app_temp_assets = os.path.abspath(self.working_dir + '/' + self.identifier + '/assets-src/')
         self.api_link = ''
         self.apk_path = ''
         self.via_api = via_api
         self.build_type = build_type
         self.theme_colors = theme_colors
+        self.app_launcher_icon = None
+        self.notification_icon = None
+        self.login_screen_image = None
+        self.splash_screen_image = None
+        self.splash_screen_image_land = None
+        self.splash_screen_image_large = None
+        self.splash_screen_image_large_land = None
+        self.google_services_json = None
+        self.config_json = None
 
     def get_path(self, relative_path):
         """
@@ -70,7 +78,7 @@ class Generator:
         """
         return os.path.abspath(self.app_temp_assets + '/' + relative_path)
 
-    def normalize(self, creator_email, endpoint_url=None, is_auth_enabled=False, zip_file=None):
+    def normalize(self, creator_email, endpoint_url=None, is_auth_enabled=False, config_file=None, zip_file=None):
         """
         Normalize the required data irrespective of the source
         :param creator_email:
@@ -79,46 +87,60 @@ class Generator:
         :param zip_file:
         :return:
         """
+
         self.update_status('Normalizing source data')
         if not endpoint_url and not zip_file:
             raise Exception('endpoint_url or zip_file is required')
         if endpoint_url:
-            self.api_link = endpoint_url
             os.makedirs(self.app_temp_assets)
-            event_info = requests.get(endpoint_url + '/event').json()
+            app_details = requests.get(endpoint_url).json()
             self.download_event_data()
         else:
-            unzip(zip_file, self.app_temp_assets)
-            with open(self.get_temp_asset_path('event')) as json_data:
-                event_info = json.load(json_data)
-                event_id = event_info['id']
+            jsonFile = open(config_file, "r")
+            app_details = json.load(jsonFile)
 
-            if os.path.isfile(self.get_temp_asset_path('meta')):
-                with open(self.get_temp_asset_path('meta')) as json_data:
-                    meta = json.load(json_data)
-                    root_url = meta['root-url']
-                    if root_url:
-                        self.api_link = root_url + '/api/v1/events/' + str(event_id)
+        os.makedirs(self.app_temp_assets)
 
-        self.event_name = event_info['name']
-        self.app_name = self.event_name
-        self.creator_email = creator_email
-        self.is_auth_enabled = is_auth_enabled
-        self.update_status('Processing background image and logo')
-        background_image = event_info['original-image-url'].strip() if event_info['original-image-url'] else ''
-        logo = event_info['logo-url'].strip() if event_info['logo-url'] else ''
-        if background_image != '':
-            if background_image.startswith("/"):
-                self.app_background_image = self.get_temp_asset_path(background_image)
-            elif validators.url(background_image):
-                self.app_background_image = self.get_temp_asset_path('background.png')
-                urllib.urlretrieve(background_image, self.app_background_image)
-        if logo != '':
-            if logo.startswith("/"):
-                self.app_launcher_icon = self.get_temp_asset_path(logo)
-            elif validators.url(logo):
-                self.app_launcher_icon = self.get_temp_asset_path('logo.png')
-                urllib.urlretrieve(logo, self.app_launcher_icon)
+        self.config_json = config_file
+        self.google_services_json = zip_file
+
+        self.update_status('Processing images')
+
+        login_screen_image = app_details['login_screen_image']
+        splash_screen_image = app_details['splash_screen_image']
+        splash_screen_image_land = app_details['splash_screen_image_land']
+        splash_screen_image_large = app_details['splash_screen_image_large']
+        splash_screen_image_large_land = app_details['splash_screen_image_large_land']
+        launcher_icon = app_details['launcher_icon']
+        notification_icon = app_details['notification_icon']
+
+        if validators.url(login_screen_image):
+            self.login_screen_image = self.get_temp_asset_path('logo.png')
+            urllib.urlretrieve(login_screen_image, self.login_screen_image)
+
+        if validators.url(splash_screen_image):
+            self.splash_screen_image = self.get_temp_asset_path('splash_screen.png')
+            urllib.urlretrieve(splash_screen_image, self.splash_screen_image)
+
+        if validators.url(splash_screen_image_land):
+            self.splash_screen_image_land = self.get_temp_asset_path('splash_screen_land.png')
+            urllib.urlretrieve(splash_screen_image_land, self.splash_screen_image_land)
+
+        if validators.url(splash_screen_image_large):
+            self.splash_screen_image_large = self.get_temp_asset_path('splash_screen_large.png')
+            urllib.urlretrieve(splash_screen_image_large, self.splash_screen_image_large)
+
+        if validators.url(splash_screen_image_large_land):
+            self.splash_screen_image_large_land = self.get_temp_asset_path('splash_screen_large_land.png')
+            urllib.urlretrieve(splash_screen_image_large_land, self.splash_screen_image_large_land)
+
+        if validators.url(launcher_icon):
+            self.app_launcher_icon = self.get_temp_asset_path('icon.png')
+            urllib.urlretrieve(launcher_icon, self.app_launcher_icon)
+
+        if validators.url(notification_icon):
+            self.notification_icon = self.get_temp_asset_path('ic_notification.png')
+            urllib.urlretrieve(launcher_icon, self.notification_icon)
 
     def generate(self, should_notify=True):
         """
@@ -132,61 +154,27 @@ class Generator:
 
         self.prepare_source()
 
-        self.app_package_name = 'org.fossasia.openevent.' + re.sub('\W+', '', self.app_name)
-
-        logger.info('App package name: %s' % self.app_package_name)
-
-        config = {
-            'email': self.creator_email,
-            'app-name': self.app_name,
-            'api-link': self.api_link,
-            'is-auth-enabled': self.is_auth_enabled
-        }
-
         self.update_status('Generating app configuration')
 
-        with open(self.get_path("app/src/main/assets/config.json"), "w+") as config_file:
-            config_file.write(json.dumps(config))
+        shutil.copyfile(self.config_json, self.app_working_dir + '/app/src/main/assets/config.json')
 
-        self.update_status('Generating launcher icons & background image')
+        with open(self.google_services_json, "r") as infile:
+            with open(self.app_working_dir + '/app/google-services.json', 'w') as outfile:
+                shutil.copyfileobj(infile, outfile)
 
-        save_logo(self.app_launcher_icon, self.app_working_dir)
-        resize_launcher_icon(self.app_launcher_icon, self.app_working_dir)
-        resize_background_image(self.app_background_image, self.app_working_dir)
+        self.update_status('Generating various density images')
 
-        self.update_status('Updating resources')
-
-        replace(self.get_path("app/src/main/res/values/strings.xml"), 'OpenEvent', self.app_name)
-        replace(self.get_path("app/src/main/res/layout/nav_header.xml"), 'twitter', 'background')
-        replace(self.get_path("app/build.gradle"), '"org.fossasia.openevent"', '"%s"' % self.app_package_name)
-
-        if self.theme_colors:
-            self.update_status('Setting theme colors')
-            change_theme(self.get_path("app/src/main/res/values/color.xml"), self.theme_colors)
-
-        self.update_status('Loading assets')
-
-        for f in os.listdir(self.app_temp_assets):
-            path = os.path.join(self.app_temp_assets, f)
-            if os.path.isfile(path):
-                logger.info('Copying %s' % path)
-                shutil.copyfile(path, self.get_path("app/src/main/assets/" + f))
-
-        images_path = os.path.join(self.app_temp_assets, 'images')
-
-        speakers_path = os.path.join(images_path, 'speakers')
-        if os.path.isdir(speakers_path):
-            logger.info('Copying %s' % speakers_path)
-            shutil.copytree(speakers_path, self.get_path("app/src/main/assets/images/speakers/"))
-
-        sponsors_path = os.path.join(images_path, 'sponsors')
-        if os.path.isdir(sponsors_path):
-            logger.info('Copying %s' % sponsors_path)
-            shutil.copytree(sponsors_path, self.get_path("app/src/main/assets/images/sponsors/"))
+        create_various_density_images(self.app_launcher_icon, self.app_working_dir)
+        create_various_density_images(self.notification_icon, self.app_working_dir)
+        shutil.copyfile(self.login_screen_image, self.app_working_dir + '/app/src/main/res/drawable/logo.png')
+        shutil.copyfile(self.splash_screen_image, self.app_working_dir + '/app/src/main/res/drawable/splash_screen.png')
+        shutil.copyfile(self.splash_screen_image_land, self.app_working_dir + '/app/src/main/res/drawable-land/splash_screen.png')
+        shutil.copyfile(self.splash_screen_image_large, self.app_working_dir + '/app/src/main/res/drawable-large/splash_screen.png')
+        shutil.copyfile(self.splash_screen_image_large_land, self.app_working_dir + '/app/src/main/res/drawable-large-land/splash_screen.png')
 
         self.update_status('Preparing android build tools')
 
-        build_tools_version = get_build_tools_version(self.get_path('build.gradle'))
+        build_tools_version = get_build_tools_version(self.get_path('app/build.gradle'))
 
         logger.info('Detected build tools version: %s' % build_tools_version)
 
@@ -252,9 +240,8 @@ class Generator:
         Prepare the app-specific source based off the parent
         :return:
         """
-        logger.info('Preparing source code.')
-        logger.info('Copying source from %s to %s' % (self.src_dir, self.app_working_dir))
-        shutil.copytree(self.src_dir, self.app_working_dir, ignore=ignore_files)
+        # shutil.copytree(self.src_dir, self.app_working_dir)
+        Repo.clone_from("https://github.com/testpress/android.git", self.app_working_dir)
         for density in DENSITY_TYPES:
             mipmap_dir = self.get_path("app/src/main/res/mipmap-%s" % density)
             if os.path.exists(mipmap_dir):

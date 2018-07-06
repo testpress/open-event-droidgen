@@ -1,6 +1,7 @@
 var $generateBtn = $("#generate-btn"),
     $emailInput = $("#email"),
     $jsonUploadInput = $("#json-upload"),
+    $googleServicesJsonUploadInput = $("#google-services-json"),
     $apiEndpointInput = $("#api-endpoint"),
     $jsonUploadInputHolder = $("#json-upload-holder"),
     $apiEndpointInputHolder = $("#api-endpoint-holder"),
@@ -174,12 +175,12 @@ function deployStatus() {
     xhttp.onreadystatechange = function() {
         if (this.readyState === 4 && this.status === 200) {
             var version = JSON.parse(this.responseText).object.sha;
-            var versionLink = "https://github.com/fossasia/open-event-android/tree/" + version;
+            var versionLink = "https://github.com/testpress/android/tree/" + version;
             $("#deploy-link").attr("href", versionLink);
             $("#deploy-link").html(version);
         }
     };
-    xhttp.open("GET", "https://api.github.com/repos/fossasia/open-event-android/git/refs/heads/development", true);
+    xhttp.open("GET", "https://api.github.com/repos/testpress/android/git/refs/heads/master", true);
     xhttp.send();
 }
 
@@ -269,13 +270,13 @@ $form.submit(function (e) {
 
     if (dataSourceType === "json_upload") {
         data.append("json-upload", $jsonUploadInput[0].files[0]);
+        data.append("google-services-json", $googleServicesJsonUploadInput[0].files[0]);
         config.onUploadProgress = updateProgress;
     } else {
         data.append("api-endpoint", $apiEndpointInput.val());
     }
 
     updateStatus();
-
     axios
         .post("/", data, config)
         .then(function (res) {

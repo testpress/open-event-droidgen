@@ -86,7 +86,7 @@ h3.custom-navtitle {
 }
 
 .custom-menu {
-    min-height: 350px;
+    min-height: 120px;
     overflow: auto;
     width: 300px;
     position: absolute;

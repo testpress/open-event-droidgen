@@ -4,7 +4,6 @@ from PIL import Image
 
 from app.utils.libs.asset_resizer import AssetResizer
 
-
 def rename_file(file_path, new_name):
     """
     Rename a file while maintaining it's extension
@@ -18,21 +17,19 @@ def rename_file(file_path, new_name):
     os.rename(file_path, new_path)
     return new_path
 
-
-def resize_launcher_icon(icon_path, app_directory):
+def create_various_density_images(icon_path, app_directory):
     """
     Resize a launcher icon into it's appropriate densities and save it into the app's resources directory
     :param icon_path: The path to the icon
     :param app_directory: The path to the app-level working directory
     :return:
     """
-    icon_path = rename_file(icon_path, 'ic_launcher')
     destination = os.path.abspath(app_directory + '/app/src/main/')
-    resizer = AssetResizer(destination, directory_prefix='mipmap', image_filter=Image.ANTIALIAS)
+    resizer = AssetResizer(destination, directory_prefix='drawable', xxxhdpi=True, image_filter=Image.ANTIALIAS)
     resizer.mkres()
+    print "I am worked"
     resizer.resize(icon_path)
     os.remove(icon_path)
-
 
 def resize_background_image(background_path, app_directory):
     """

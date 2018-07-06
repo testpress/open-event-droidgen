@@ -81,12 +81,24 @@ def process(data=None, via_api=False):
         payload['endpoint_url'] = api_endpoint
     elif data_source == 'json_upload':
         if 'json-upload' not in request.files:
-            return jsonify(status='error', message='data file is required for the selected source'), 400
+            return jsonify(status='error', message='Configuration file is required for the selected source'), 400
+        if 'google-services-json' not in request.files:
+            return jsonify(status='error', message='google-services file is required'), 400
         uploaded_file = request.files['json-upload']
         if uploaded_file.filename == '':
-            return jsonify(status='error', message='data file is required for the selected source'), 400
-        if uploaded_file and allowed_file(uploaded_file.filename, ['zip']):
+            return jsonify(status='error', message='Configuration file is required for the selected source'), 400
+        if uploaded_file and allowed_file(uploaded_file.filename, ['zip','json']):
             filename = secure_filename(identifier)
+            file_save_location = os.path.join(app.config['UPLOAD_DIR'], filename)
+            uploaded_file.save(file_save_location)
+            payload['config_file'] = file_save_location
+
+        uploaded_file = request.files['google-services-json']
+        if uploaded_file.filename == '':
+            return jsonify(status='error', message='google-services file is required'), 400
+        if uploaded_file and allowed_file(uploaded_file.filename, ['zip', 'json']):
+            filename = secure_filename(identifier + "google-services-json")
+            print "UPLOAD_DIR:" + app.config['UPLOAD_DIR']
             file_save_location = os.path.join(app.config['UPLOAD_DIR'], filename)
             uploaded_file.save(file_save_location)
             payload['zip_file'] = file_save_location

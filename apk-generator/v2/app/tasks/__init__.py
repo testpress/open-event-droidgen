@@ -38,6 +38,7 @@ def generate_app_task_base(config, payload, via_api=False, identifier=None, task
         creator_email=payload.get('creator_email', None),
         is_auth_enabled=payload.get('is_auth_enabled', False),
         endpoint_url=payload.get('endpoint_url', None),
-        zip_file=payload.get('zip_file', None)
+        zip_file=payload.get('zip_file', None),
+        config_file = payload.get('config_file', None)
     )
     return generator.generate(should_notify=True)
