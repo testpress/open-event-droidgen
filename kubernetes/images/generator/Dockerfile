@@ -6,8 +6,8 @@ ARG BRANCH
 ARG REPOSITORY
 
 ENV COMMIT_HASH ${COMMIT_HASH:-null}
-ENV BRANCH ${BRANCH:-master}
-ENV REPOSITORY ${REPOSITORY:-https://github.com/fossasia/open-event-android.git}
+ENV BRANCH ${BRANCH:-development}
+ENV REPOSITORY ${REPOSITORY:-https://github.com/testpress/open-event-droidgen.git}
 
 RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee /etc/apt/sources.list.d/webupd8team-java.list
 RUN echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
@@ -42,9 +42,9 @@ ENV WORKSPACE /data/workspace
 RUN mkdir -p $WORKSPACE
 
 ENV GENERATOR_WORKING_DIR ${WORKSPACE}/temp/
-ENV KEYSTORE_PATH ${WORKSPACE}/generator.keystore
-ENV KEYSTORE_PASSWORD generator
-ENV KEY_ALIAS generator
+ENV KEYSTORE_PATH ${WORKSPACE}/testpress.jks
+ENV KEYSTORE_PASSWORD welcome1$
+ENV KEY_ALIAS testpress
 # Prepare working folders
 ENV GENERATOR_WORKING_DIR ${WORKSPACE}/temp/
 

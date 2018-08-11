@@ -1,5 +1,6 @@
 celery>=3.1.23,<4
 redis>=2.10.5,<3
+kombu==3.0.37
 Flask>=0.12,<1
 requests[security]>=2.12.4,<3
 marrow.mailer>=4.0.2,<5

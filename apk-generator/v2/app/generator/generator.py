@@ -101,6 +101,7 @@ class Generator:
 
         os.makedirs(self.app_temp_assets)
 
+        self.creator_email = creator_email
         self.config_json = config_file
         self.google_services_json = zip_file
 
