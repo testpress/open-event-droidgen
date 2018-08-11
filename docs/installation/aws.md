@@ -83,7 +83,7 @@ export SERVER_NAME="ec2-52-41-207-116.us-west-2.compute.amazonaws.com"
 * Then we will build the server. This process can take some time.
 
 ```sh
-git clone https://github.com/fossasia/open-event-android.git && cd open-event-android
+git clone https://github.com/testpress/open-event-droidgen.git && cd open-event-android
 docker-compose build
 ```
 
